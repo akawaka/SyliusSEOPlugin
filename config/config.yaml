@@ -1,0 +1,3 @@
+imports:
+    - { resource: "app/resources.yaml" }
+    - { resource: "app/grids.yaml" }

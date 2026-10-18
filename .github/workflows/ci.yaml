@@ -1,0 +1,51 @@
+name: CI
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+
+jobs:
+    quality:
+        runs-on: ubuntu-latest
+        name: Static analysis and unit tests
+        steps:
+            -   uses: actions/checkout@v4
+            -   uses: shivammathur/setup-php@v2
+                with:
+                    php-version: '8.3'
+                    coverage: none
+            -   run: composer validate --strict
+            -   run: composer install --no-interaction --prefer-dist
+            -   run: vendor/bin/ecs check
+            -   run: vendor/bin/phpstan analyse -c phpstan.neon --no-progress
+            -   run: vendor/bin/phpunit --testsuite Unit
+
+    functional:
+        runs-on: ubuntu-latest
+        name: Functional tests (PHP ${{ matrix.php }})
+        strategy:
+            fail-fast: false
+            matrix:
+                php: ['8.2', '8.3', '8.4']
+        services:
+            mysql:
+                image: mysql:8.0
+                env:
+                    MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+                ports: ['3306:3306']
+                options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=5
+        env:
+            APP_ENV: test
+            DATABASE_URL: mysql://root@127.0.0.1/akawaka_sylius_seo_test
+        steps:
+            -   uses: actions/checkout@v4
+            -   uses: shivammathur/setup-php@v2
+                with:
+                    php-version: ${{ matrix.php }}
+                    coverage: none
+            -   run: composer install --no-interaction --prefer-dist
+            -   run: vendor/bin/console doctrine:database:create
+            -   run: vendor/bin/console doctrine:migrations:migrate -n
+            -   run: vendor/bin/console sylius:fixtures:load -n
+            -   run: vendor/bin/phpunit --testsuite Functional

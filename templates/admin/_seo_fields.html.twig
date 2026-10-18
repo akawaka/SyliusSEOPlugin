@@ -1,0 +1,76 @@
+{% set accordionId = seoForm.vars.id ~ '_accordion' %}
+<div class="accordion accordion-flush" id="{{ accordionId }}">
+    {% for localeForm in seoForm %}
+        {% set itemId = localeForm.vars.id ~ '_item' %}
+        {% set open = loop.first or not localeForm.vars.valid %}
+        <div class="accordion-item" data-akawaka-seo>
+            <h3 class="accordion-header">
+                <button class="accordion-button {{ open ? '' : 'collapsed' }}" type="button" data-bs-toggle="collapse" data-bs-target="#{{ itemId }}" aria-expanded="{{ open ? 'true' : 'false' }}" aria-controls="{{ itemId }}">
+                    {{ localeForm.vars.label }}
+                    {% if not localeForm.vars.valid %}<span class="badge bg-danger ms-2">!</span>{% endif %}
+                </button>
+            </h3>
+            <div id="{{ itemId }}" class="accordion-collapse collapse {{ open ? 'show' : '' }}" data-bs-parent="#{{ accordionId }}">
+                <div class="accordion-body">
+                    <div class="border rounded p-3 mb-3 bg-body-tertiary" aria-label="{{ 'akawaka_seo.admin.serp_preview'|trans }}">
+                        <div class="text-muted small mb-1">{{ 'akawaka_seo.admin.serp_preview'|trans }}</div>
+                        {% set storefrontUrl = akawaka_seo_url(subject, localeForm.vars.name) %}
+                        <div class="small text-success text-truncate" data-seo-serp-url>{{ storefrontUrl ?? (app.request.schemeAndHttpHost ~ ' › …') }}</div>
+                        <div class="fs-3 text-primary text-truncate" data-seo-serp-title></div>
+                        <div class="text-body-secondary" data-seo-serp-description></div>
+                    </div>
+
+                    {{ form_row(localeForm.metaTitle, {attr: {'data-seo-title': '', 'data-seo-counter': 60, placeholder: 'akawaka_seo.admin.default_template'|trans}}) }}
+                    {{ form_row(localeForm.metaDescription, {attr: {'data-seo-description': '', 'data-seo-counter': 160, rows: 3, placeholder: 'akawaka_seo.admin.default_template'|trans}}) }}
+                    {{ form_row(localeForm.canonicalUrl) }}
+                    <div class="row">
+                        <div class="col-md-6">{{ form_row(localeForm.robotsIndex) }}</div>
+                        <div class="col-md-6">{{ form_row(localeForm.robotsFollow) }}</div>
+                    </div>
+                    {{ form_row(localeForm.ogTitle) }}
+                    {{ form_row(localeForm.ogDescription) }}
+                    {{ form_row(localeForm.ogImage) }}
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<script>
+    (function () {
+        if (window.akawakaSeoPreview) { return; }
+        window.akawakaSeoPreview = true;
+
+        function refresh(block) {
+            var title = block.querySelector('[data-seo-title]');
+            var description = block.querySelector('[data-seo-description]');
+            block.querySelector('[data-seo-serp-title]').textContent = title.value || title.placeholder;
+            block.querySelector('[data-seo-serp-description]').textContent = description.value || description.placeholder;
+
+            block.querySelectorAll('[data-seo-counter]').forEach(function (field) {
+                var max = parseInt(field.dataset.seoCounter, 10);
+                var counter = field.parentNode.querySelector('.akawaka-seo-counter');
+                if (!counter) {
+                    counter = document.createElement('div');
+                    counter.className = 'akawaka-seo-counter form-text';
+                    field.parentNode.appendChild(counter);
+                }
+                counter.textContent = field.value.length + ' / ' + max;
+                counter.classList.toggle('text-danger', field.value.length > max);
+            });
+        }
+
+        function init() {
+            document.querySelectorAll('[data-akawaka-seo]').forEach(function (block) {
+                block.addEventListener('input', function () { refresh(block); });
+                refresh(block);
+            });
+        }
+
+        if ('loading' === document.readyState) {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    })();
+</script>

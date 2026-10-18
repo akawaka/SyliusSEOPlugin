@@ -1,0 +1,64 @@
+{% set context = hookable_metadata.context %}
+{% set severities = ['error', 'warning', 'info'] %}
+
+<div class="page-body">
+    <div class="container-xl">
+        <form method="get" class="row g-2 mb-3">
+            <div class="col-auto">
+                <select name="channel" class="form-select" onchange="this.form.submit()">
+                    {% for item in context.channels %}
+                        <option value="{{ item.code }}" {{ item.code == context.channel.code ? 'selected' }}>{{ item.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-auto">
+                <select name="locale" class="form-select" onchange="this.form.submit()">
+                    {% for item in context.locales %}
+                        <option value="{{ item }}" {{ item == context.locale ? 'selected' }}>{{ item }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </form>
+
+        <div class="row row-cards mb-3">
+            {% for severity in severities %}
+                <div class="col-sm-4">
+                    <div class="card"><div class="card-body">
+                        <div class="subheader">{{ ('akawaka_seo.audit.severity.' ~ severity)|trans }}</div>
+                        <div class="h1 mb-0" data-audit-count="{{ severity }}">{{ context.counts[severity] }}</div>
+                    </div></div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="card">
+            {% if context.issues is empty %}
+                <div class="card-body text-success">{{ 'akawaka_seo.audit.no_issue'|trans }}</div>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="table table-vcenter card-table">
+                        <thead>
+                            <tr>
+                                <th>{{ 'akawaka_seo.audit.severity.label'|trans }}</th>
+                                <th>{{ 'akawaka_seo.audit.subject'|trans }}</th>
+                                <th>{{ 'akawaka_seo.audit.issue'|trans }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for issue in context.issues %}
+                                <tr data-audit-issue="{{ issue.rule.value }}">
+                                    <td><span class="badge {{ issue.rule.severity.badgeClass }} text-white">{{ issue.rule.severity.label|trans }}</span></td>
+                                    <td>
+                                        <a href="{{ path(issue.subjectType == 'page' ? 'akawaka_cms_admin_page_update' : 'sylius_admin_' ~ issue.subjectType ~ '_update', {id: issue.subjectId}) }}">{{ issue.subjectLabel }}</a>
+                                        <span class="text-muted">({{ ('akawaka_seo.audit.type.' ~ issue.subjectType)|trans }})</span>
+                                    </td>
+                                    <td>{{ issue.rule.label|trans }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>

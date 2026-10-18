@@ -1,0 +1,7 @@
+{% extends '@SyliusAdmin/shared/layout/base.html.twig' %}
+
+{% block title %}{{ 'akawaka_seo.menu.audit'|trans }} {{ parent() }}{% endblock %}
+
+{% block body %}
+    {% hook ['akawaka_seo.audit.index', 'sylius_admin.common.index'] with {title: 'akawaka_seo.menu.audit', channel, locale, locales, channels, issues, counts} %}
+{% endblock %}

@@ -1,0 +1,72 @@
+akawaka_seo:
+    admin:
+        title: SEO
+        robots_txt: robots.txt
+        serp_preview: Search result preview
+        default_template: Default template
+    form:
+        meta_title: Meta title
+        meta_description: Meta description
+        canonical_url: Canonical URL
+        robots_index: Allow indexing (index)
+        robots_follow: Allow following links (follow)
+        og_title: Open Graph title
+        og_description: Open Graph description
+        og_image: Open Graph image URL
+        robots_txt: robots.txt content
+        robots_txt_help: Leave empty to serve the default content. A Sitemap line is added automatically when missing.
+    ui:
+        redirects: Redirections
+        redirect: Redirection
+    menu:
+        seo: SEO
+        redirects: Redirections
+        image_alts: Image alt texts
+        audit: SEO audit
+    redirect:
+        created_at: Created at
+        hits: Hits
+        automatic: Automatic
+        source_path:
+            label: Source path
+            help: 'Path of the old URL, e.g. /en_US/products/old-slug'
+            slash: The path must start with a slash.
+            unique: A redirection already exists for this path.
+        target_url:
+            label: Target
+            help: A path (/en_US/products/new-slug) or an absolute URL.
+            format: The target must start with a slash or with http(s)://.
+            loop: The target must differ from the source.
+        status:
+            label: Type
+            permanent: 301 - Moved permanently
+            temporary: 302 - Found (temporary)
+    audit:
+        no_issue: No SEO issue found.
+        subject: Page
+        issue: Issue
+        type:
+            product: Product
+            taxon: Category
+            page: CMS page
+        severity:
+            label: Severity
+            error: Errors
+            warning: Warnings
+            info: Notices
+        rule:
+            title_missing: Meta title is missing
+            title_too_short: Meta title is too short (under 30 characters)
+            title_too_long: Meta title is too long (over 60 characters)
+            title_duplicate: Meta title is used by several pages
+            description_missing: Meta description is missing
+            description_too_short: Meta description is too short (under 70 characters)
+            description_too_long: Meta description is too long (over 160 characters)
+            no_index: Page excluded from search engines (noindex)
+            product_without_image: Product without image
+            image_without_alt: An image has no alt text
+    image_alt:
+        alt: Alt text
+        missing_only: Missing alt text only
+        none: No image to show.
+        total: '{0} No image|{1} 1 image|]1,Inf[ %count% images'

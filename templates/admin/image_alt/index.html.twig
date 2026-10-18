@@ -1,0 +1,7 @@
+{% extends '@SyliusAdmin/shared/layout/base.html.twig' %}
+
+{% block title %}{{ 'akawaka_seo.menu.image_alts'|trans }} {{ parent() }}{% endblock %}
+
+{% block body %}
+    {% hook ['akawaka_seo.image_alt.index', 'sylius_admin.common.index'] with {title: 'akawaka_seo.menu.image_alts', type, locale, locales, missing_only, images, alts, page, pages, total, token} %}
+{% endblock %}

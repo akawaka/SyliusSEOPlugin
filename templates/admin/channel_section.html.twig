@@ -1,0 +1,12 @@
+{% set form = hookable_metadata.context.form %}
+
+{% if form.akawaka_robots_txt is defined %}
+    <div class="g-col-12 card mb-3">
+        <div class="card-header">
+            <div class="card-title">{{ 'akawaka_seo.admin.robots_txt'|trans }}</div>
+        </div>
+        <div class="card-body">
+            {{ form_row(form.akawaka_robots_txt) }}
+        </div>
+    </div>
+{% endif %}

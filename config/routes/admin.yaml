@@ -1,0 +1,28 @@
+akawaka_seo_admin_redirect:
+    resource: |
+        alias: akawaka_seo.redirect
+        section: admin
+        templates: "@SyliusAdmin\\shared\\crud"
+        except: ['show']
+        redirect: index
+        grid: akawaka_seo_admin_redirect
+        permission: true
+        vars:
+            all:
+                header: akawaka_seo.menu.redirects
+            index:
+                icon: arrows-right-left
+    type: sylius.resource
+    prefix: /admin/seo
+
+akawaka_seo_admin_audit:
+    path: /admin/seo/audit
+    methods: [GET]
+    defaults:
+        _controller: Akawaka\SyliusSEOPlugin\Controller\AuditController
+
+akawaka_seo_admin_image_alt:
+    path: /admin/seo/image-alts
+    methods: [GET, POST]
+    defaults:
+        _controller: Akawaka\SyliusSEOPlugin\Controller\ImageAltController

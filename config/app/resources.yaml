@@ -1,0 +1,13 @@
+parameters:
+    akawaka_seo.form.type.redirect.validation_groups: ['akawaka_seo']
+
+sylius_resource:
+    resources:
+        akawaka_seo.redirect:
+            driver: doctrine/orm
+            classes:
+                model: Akawaka\SyliusSEOPlugin\Entity\Redirect
+                interface: Akawaka\SyliusSEOPlugin\Entity\RedirectInterface
+                factory: Sylius\Resource\Factory\Factory
+                repository: Akawaka\SyliusSEOPlugin\Repository\RedirectRepository
+                form: Akawaka\SyliusSEOPlugin\Form\Type\RedirectType

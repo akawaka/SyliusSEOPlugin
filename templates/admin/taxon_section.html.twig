@@ -1,0 +1,10 @@
+{% set form = hookable_metadata.context.form %}
+
+<div class="card mb-3">
+    <div class="card-header">
+        <h2 class="card-title">{{ 'akawaka_seo.admin.title'|trans }}</h2>
+    </div>
+    {% if form.akawaka_seo is defined %}
+        {% include '@AkawakaSyliusSEOPlugin/admin/_seo_fields.html.twig' with { seoForm: form.akawaka_seo, subject: form.vars.data } only %}
+    {% endif %}
+</div>

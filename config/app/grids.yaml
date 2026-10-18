@@ -1,0 +1,62 @@
+sylius_grid:
+    grids:
+        akawaka_seo_admin_redirect:
+            driver:
+                name: doctrine/orm
+                options:
+                    class: "%akawaka_seo.model.redirect.class%"
+            sorting:
+                createdAt: desc
+            fields:
+                sourcePath:
+                    type: string
+                    label: akawaka_seo.redirect.source_path.label
+                    sortable: ~
+                targetUrl:
+                    type: string
+                    label: akawaka_seo.redirect.target_url.label
+                status:
+                    type: twig
+                    label: akawaka_seo.redirect.status.label
+                    sortable: ~
+                    options:
+                        template: '@AkawakaSyliusSEOPlugin/admin/redirect/grid_status.html.twig'
+                hits:
+                    type: string
+                    label: akawaka_seo.redirect.hits
+                    sortable: ~
+                createdAt:
+                    type: datetime
+                    label: akawaka_seo.redirect.created_at
+                    sortable: ~
+                automatic:
+                    type: twig
+                    label: akawaka_seo.redirect.automatic
+                    options:
+                        template: '@SyliusAdmin/shared/grid/field/boolean.html.twig'
+                enabled:
+                    type: twig
+                    label: sylius.ui.enabled
+                    sortable: ~
+                    options:
+                        template: '@SyliusAdmin/shared/grid/field/boolean.html.twig'
+            filters:
+                search:
+                    type: string
+                    label: sylius.ui.search
+                    options:
+                        fields: [sourcePath, targetUrl]
+                    form_options:
+                        type: !php/const Sylius\Component\Grid\Filter\StringFilter::TYPE_CONTAINS
+            actions:
+                main:
+                    create:
+                        type: create
+                item:
+                    update:
+                        type: update
+                    delete:
+                        type: delete
+                bulk:
+                    delete:
+                        type: delete

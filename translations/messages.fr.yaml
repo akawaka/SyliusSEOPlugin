@@ -1,0 +1,72 @@
+akawaka_seo:
+    admin:
+        title: SEO
+        robots_txt: robots.txt
+        serp_preview: Aperçu dans les résultats de recherche
+        default_template: Template par défaut
+    form:
+        meta_title: Meta title
+        meta_description: Meta description
+        canonical_url: URL canonique
+        robots_index: Autoriser l'indexation (index)
+        robots_follow: Autoriser le suivi des liens (follow)
+        og_title: Titre Open Graph
+        og_description: Description Open Graph
+        og_image: URL de l'image Open Graph
+        robots_txt: Contenu du robots.txt
+        robots_txt_help: Laisser vide pour servir le contenu par défaut. Une ligne Sitemap est ajoutée automatiquement si absente.
+    ui:
+        redirects: Redirections
+        redirect: Redirection
+    menu:
+        seo: SEO
+        redirects: Redirections
+        image_alts: Textes alternatifs des images
+        audit: Audit SEO
+    redirect:
+        created_at: Créée le
+        hits: Visites
+        automatic: Automatique
+        source_path:
+            label: Chemin source
+            help: "Chemin de l'ancienne URL, ex. /fr_FR/products/ancien-slug"
+            slash: Le chemin doit commencer par un slash.
+            unique: Une redirection existe déjà pour ce chemin.
+        target_url:
+            label: Cible
+            help: Un chemin (/fr_FR/products/nouveau-slug) ou une URL absolue.
+            format: La cible doit commencer par un slash ou par http(s)://.
+            loop: La cible doit être différente de la source.
+        status:
+            label: Type
+            permanent: 301 - Déplacée définitivement
+            temporary: 302 - Trouvée (temporaire)
+    audit:
+        no_issue: Aucun problème SEO détecté.
+        subject: Page
+        issue: Problème
+        type:
+            product: Produit
+            taxon: Catégorie
+            page: Page CMS
+        severity:
+            label: Gravité
+            error: Erreurs
+            warning: Avertissements
+            info: Informations
+        rule:
+            title_missing: Le meta title est absent
+            title_too_short: Le meta title est trop court (moins de 30 caractères)
+            title_too_long: Le meta title est trop long (plus de 60 caractères)
+            title_duplicate: Le meta title est utilisé par plusieurs pages
+            description_missing: La meta description est absente
+            description_too_short: La meta description est trop courte (moins de 70 caractères)
+            description_too_long: La meta description est trop longue (plus de 160 caractères)
+            no_index: Page exclue des moteurs de recherche (noindex)
+            product_without_image: Produit sans image
+            image_without_alt: Une image n'a pas de texte alternatif
+    image_alt:
+        alt: Texte alternatif
+        missing_only: Sans texte alternatif uniquement
+        none: Aucune image à afficher.
+        total: '{0} Aucune image|{1} 1 image|]1,Inf[ %count% images'

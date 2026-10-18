@@ -1,0 +1,20 @@
+akawaka_seo_sitemap_index:
+    path: /sitemap.xml
+    methods: [GET]
+    defaults:
+        _controller: Akawaka\SyliusSEOPlugin\Controller\SitemapController::indexAction
+
+akawaka_seo_sitemap_section:
+    path: /sitemap-{type}-{page}.xml
+    methods: [GET]
+    defaults:
+        _controller: Akawaka\SyliusSEOPlugin\Controller\SitemapController::sectionAction
+    requirements:
+        type: product|taxon|page
+        page: '\d+'
+
+akawaka_seo_robots_txt:
+    path: /robots.txt
+    methods: [GET]
+    defaults:
+        _controller: Akawaka\SyliusSEOPlugin\Controller\RobotsTxtController
