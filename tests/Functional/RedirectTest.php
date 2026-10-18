@@ -93,4 +93,20 @@ final class RedirectTest extends FunctionalTestCase
         self::assertResponseIsSuccessful();
         self::assertStringContainsString('/en_US/from-admin', $crawler->text());
     }
+
+    public function testInvalidRedirectionsAreRejectedWithTranslatedMessages(): void
+    {
+        $this->logInAsAdministrator();
+        $crawler = $this->client->request('GET', '/admin/seo/redirects/new');
+        $form = $crawler->filter('form[name="akawaka_seo_redirect"], form[name="redirect"]')->form();
+        $prefix = $form->getName();
+        $form[$prefix . '[sourcePath]'] = 'no-slash';
+        $form[$prefix . '[targetUrl]'] = 'no-slash';
+        $crawler = $this->client->submit($form);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertStringContainsString('The path must start with a slash.', $crawler->text());
+        self::assertStringContainsString('The target must start with a slash', $crawler->text());
+        self::assertStringContainsString('The target must differ from the source.', $crawler->text());
+    }
 }

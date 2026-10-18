@@ -77,4 +77,33 @@ final class AdminSeoFormTest extends FunctionalTestCase
         self::assertInstanceOf(SeoMetadata::class, $stored);
         self::assertSame('Taxon SEO title', $stored->getMetaTitle());
     }
+
+    public function testInvalidUrlsAreRejectedAndNothingIsStored(): void
+    {
+        $this->logInAsAdministrator();
+        $productId = (int) $this->firstProduct()->getId();
+        $crawler = $this->client->request('GET', '/admin/products/' . $productId . '/edit');
+
+        $form = $crawler->filter('form[name="sylius_admin_product"]')->form();
+        $form['sylius_admin_product[akawaka_seo][en_US][canonicalUrl]'] = 'javascript:alert(1)';
+        $crawler = $this->client->submit($form);
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertStringContainsString('The URL must start with', $crawler->text());
+        self::assertSame(0, $this->entityManager()->getRepository(SeoMetadata::class)->count([]));
+    }
+
+    public function testDeletingASubjectRemovesItsSeoRows(): void
+    {
+        $product = $this->firstProduct();
+        $this->createSeoMetadata($product);
+        $this->createSeoMetadata($product, 'fr_FR');
+        $this->entityManager()->flush();
+
+        $dispatcher = static::getContainer()->get('event_dispatcher');
+        $dispatcher->dispatch(new \Sylius\Resource\Symfony\EventDispatcher\GenericEvent($product), 'sylius.product.pre_delete');
+        $dispatcher->dispatch(new \Sylius\Resource\Symfony\EventDispatcher\GenericEvent($product), 'sylius.product.post_delete');
+
+        self::assertSame(0, $this->entityManager()->getRepository(SeoMetadata::class)->count([]));
+    }
 }
