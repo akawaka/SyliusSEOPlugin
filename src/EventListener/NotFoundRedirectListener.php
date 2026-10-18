@@ -39,9 +39,12 @@ final class NotFoundRedirectListener
         $redirect->incrementHits();
         $this->entityManager->flush();
 
-        $event->setResponse(new RedirectResponse(
-            str_starts_with($target, '/') ? $request->getBaseUrl() . $target : $target,
-            $redirect->getStatus()->value,
-        ));
+        $query = $request->getQueryString();
+        $location = str_starts_with($target, '/') ? $request->getBaseUrl() . $target : $target;
+        if (null !== $query && '' !== $query && !str_contains($location, '?')) {
+            $location .= '?' . $query;
+        }
+
+        $event->setResponse(new RedirectResponse($location, $redirect->getStatus()->value));
     }
 }

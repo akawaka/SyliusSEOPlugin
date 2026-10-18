@@ -25,7 +25,8 @@ final class ImageAltListener
     {
         $response = $event->getResponse();
 
-        if (!$event->isMainRequest() || !str_contains((string) $response->headers->get('Content-Type'), 'text/html')) {
+        $route = $event->getRequest()->attributes->getString('_route');
+        if (!$event->isMainRequest() || str_starts_with($route, 'sylius_admin') || str_starts_with($route, 'akawaka_seo_admin') || !str_contains((string) $response->headers->get('Content-Type'), 'text/html')) {
             return;
         }
 

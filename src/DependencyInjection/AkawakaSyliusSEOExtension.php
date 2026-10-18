@@ -19,7 +19,7 @@ final class AkawakaSyliusSEOExtension extends Extension implements PrependExtens
     {
         $config = $this->processConfiguration(new Configuration(), $configs);
 
-        $container->setParameter('akawaka_sylius_seo.subjects', $config['subjects']);
+        $container->setParameter('akawaka_sylius_seo.subjects', Configuration::withDefaultSubjects($config['subjects']));
         $container->setParameter('akawaka_sylius_seo.description_max_length', $config['description_max_length']);
         $container->setParameter('akawaka_sylius_seo.sitemap.page_size', $config['sitemap']['page_size']);
 

@@ -29,14 +29,10 @@ akawaka_seo:
         automatic: Automatique
         source_path:
             label: Chemin source
-            help: "Chemin de l'ancienne URL, ex. /fr_FR/products/ancien-slug"
-            slash: Le chemin doit commencer par un slash.
-            unique: Une redirection existe déjà pour ce chemin.
+            help: Chemin de l'ancienne URL, ex. /fr_FR/products/ancien-slug
         target_url:
             label: Cible
             help: Un chemin (/fr_FR/products/nouveau-slug) ou une URL absolue.
-            format: La cible doit commencer par un slash ou par http(s)://.
-            loop: La cible doit être différente de la source.
         status:
             label: Type
             permanent: 301 - Déplacée définitivement

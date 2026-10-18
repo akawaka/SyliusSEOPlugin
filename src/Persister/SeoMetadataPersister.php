@@ -20,6 +20,9 @@ final class SeoMetadataPersister
     /** @var array<int, array<string, array<string, mixed>>> */
     private array $pending = [];
 
+    /** @var array<int, array{0: string, 1: int}> */
+    private array $removals = [];
+
     public function __construct(
         private readonly SeoMetadataRepository $repository,
         private readonly SubjectTypeResolver $subjectTypes,
@@ -111,5 +114,29 @@ final class SeoMetadataPersister
     private function text(mixed $value): ?string
     {
         return is_string($value) && '' !== trim($value) ? trim($value) : null;
+    }
+
+    /** Remembers which rows to drop: Doctrine clears the id of an entity once it is deleted. */
+    public function scheduleRemoval(object $subject): void
+    {
+        $type = $this->subjectTypes->resolveType($subject);
+
+        if (null !== $type && method_exists($subject, 'getId') && null !== $subject->getId()) {
+            $this->removals[spl_object_id($subject)] = [$type, (int) $subject->getId()];
+        }
+    }
+
+    public function removeScheduled(object $subject): void
+    {
+        $removal = $this->removals[spl_object_id($subject)] ?? null;
+        unset($this->removals[spl_object_id($subject)]);
+
+        if (null === $removal) {
+            return;
+        }
+
+        $this->entityManager->createQuery(sprintf('DELETE FROM %s m WHERE m.subjectType = :type AND m.subjectId = :id', SeoMetadata::class))
+            ->setParameters(['type' => $removal[0], 'id' => $removal[1]])
+            ->execute();
     }
 }

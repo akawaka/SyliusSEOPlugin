@@ -136,19 +136,9 @@ final class SeoAuditor
     /** @param callable(AuditRule): void $add */
     private function checkTexts(callable $add, int $titleLength, int $descriptionLength): void
     {
-        match (true) {
-            0 === $titleLength => $add(AuditRule::TitleMissing),
-            $titleLength < self::TITLE_MIN => $add(AuditRule::TitleTooShort),
-            $titleLength > self::TITLE_MAX => $add(AuditRule::TitleTooLong),
-            default => null,
-        };
-
-        match (true) {
-            0 === $descriptionLength => $add(AuditRule::DescriptionMissing),
-            $descriptionLength < self::DESCRIPTION_MIN => $add(AuditRule::DescriptionTooShort),
-            $descriptionLength > self::DESCRIPTION_MAX => $add(AuditRule::DescriptionTooLong),
-            default => null,
-        };
+        foreach ([AuditRule::forTitleLength($titleLength), AuditRule::forDescriptionLength($descriptionLength)] as $rule) {
+            null !== $rule && $add($rule);
+        }
     }
 
     /** @return iterable<array{0: string, 1: ResourceInterface}> */

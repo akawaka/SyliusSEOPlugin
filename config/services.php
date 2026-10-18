@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Akawaka\SyliusSEOPlugin\EventListener\SeoSubjectDeletedListener;
 use Akawaka\SyliusSEOPlugin\EventListener\SeoSubjectSavedListener;
 use Akawaka\SyliusSEOPlugin\EventListener\TitleReplacementListener;
 use Akawaka\SyliusSEOPlugin\Form\Extension\ProductTypeExtension;
@@ -97,7 +98,13 @@ return static function (ContainerConfigurator $container): void {
     $services->set(ProductTypeExtension::class)->tag('form.type_extension');
     $services->set(TaxonTypeExtension::class)->tag('form.type_extension');
 
+    $services->set(SeoSubjectDeletedListener::class);
+
     foreach (['product', 'taxon'] as $resource) {
+        $services->get(SeoSubjectDeletedListener::class)
+            ->tag('kernel.event_listener', ['event' => sprintf('sylius.%s.pre_delete', $resource), 'method' => 'onPreDelete'])
+            ->tag('kernel.event_listener', ['event' => sprintf('sylius.%s.post_delete', $resource), 'method' => 'onPostDelete']);
+
         foreach (['post_create', 'post_update'] as $event) {
             $services->set(sprintf('akawaka_sylius_seo.listener.%s_%s', $resource, $event), SeoSubjectSavedListener::class)
                 ->tag('kernel.event_listener', ['event' => sprintf('sylius.%s.%s', $resource, $event)]);

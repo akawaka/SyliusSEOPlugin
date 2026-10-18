@@ -40,5 +40,7 @@ Sylius 2 plugin (`Akawaka\SyliusSEOPlugin`) providing SEO metadata for the store
 - **Config**: `src/DependencyInjection` (alias `akawaka_sylius_seo`), `config/services.php`, `config/config.yaml`.
 - **Test application**: `tests/TestApplication` (built on `sylius/test-application`).
 
+- **Validation**: constraint messages live in `translations/validators.*.yaml` (the validator domain), labels and UI in `messages.*.yaml`. The unmapped SEO fields declare `validation_groups: ['Default']` (`SeoSubjectType`) because the admin forms validate with the `sylius` group only.
+
 ### Tests and quality
 - `vendor/bin/phpunit` (unit tests in `tests/Unit`, functional tests in `tests/Functional` booting the test application on the `test` database — see README), `vendor/bin/ecs check`, `vendor/bin/phpstan analyse -c phpstan.neon` (level max).

@@ -11,6 +11,7 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\Length;
+use Symfony\Component\Validator\Constraints\Regex;
 
 /** SEO overrides of one locale, edited as an array (the entity is created by the persister). */
 final class SeoMetadataType extends AbstractType
@@ -31,7 +32,7 @@ final class SeoMetadataType extends AbstractType
             ->add('canonicalUrl', TextType::class, [
                 'label' => 'akawaka_seo.form.canonical_url',
                 'required' => false,
-                'constraints' => [new Length(max: 2048)],
+                'constraints' => [new Length(max: 2048), new Regex(pattern: '#^(https?://|/)#', message: 'akawaka_seo.form.url_format')],
             ])
             ->add('robotsIndex', CheckboxType::class, [
                 'label' => 'akawaka_seo.form.robots_index',
@@ -54,7 +55,7 @@ final class SeoMetadataType extends AbstractType
             ->add('ogImage', TextType::class, [
                 'label' => 'akawaka_seo.form.og_image',
                 'required' => false,
-                'constraints' => [new Length(max: 2048)],
+                'constraints' => [new Length(max: 2048), new Regex(pattern: '#^(https?://|/)#', message: 'akawaka_seo.form.url_format')],
             ])
         ;
     }

@@ -1,0 +1,10 @@
+akawaka_seo:
+    form:
+        url_format: L'URL doit commencer par http://, https:// ou un slash.
+    redirect:
+        source_path:
+            slash: Le chemin doit commencer par un slash.
+            unique: Une redirection existe déjà pour ce chemin.
+        target_url:
+            format: La cible doit commencer par un slash ou par http(s)://.
+            loop: La cible doit être différente de la source.
