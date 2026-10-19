@@ -14,7 +14,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: ImageAltRepository::class)]
 #[ORM\Table(name: 'akawaka_seo_image_alt')]
 #[ORM\UniqueConstraint(name: 'akawaka_seo_image_alt_path_locale', columns: ['image_path', 'locale'])]
-class ImageAlt
+class ImageAlt implements ImageAltInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -30,13 +30,6 @@ class ImageAlt
     #[ORM\Column(type: 'string', length: 255)]
     private string $alt;
 
-    public function __construct(string $imagePath, string $locale, string $alt)
-    {
-        $this->imagePath = $imagePath;
-        $this->locale = $locale;
-        $this->alt = $alt;
-    }
-
     public function getId(): ?int
     {
         return $this->id;
@@ -47,9 +40,19 @@ class ImageAlt
         return $this->imagePath;
     }
 
+    public function setImagePath(string $imagePath): void
+    {
+        $this->imagePath = $imagePath;
+    }
+
     public function getLocale(): string
     {
         return $this->locale;
+    }
+
+    public function setLocale(string $locale): void
+    {
+        $this->locale = $locale;
     }
 
     public function getAlt(): string

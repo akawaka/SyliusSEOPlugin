@@ -9,6 +9,7 @@ use Akawaka\SyliusSEOPlugin\Persister\SeoMetadataPersister;
 use Akawaka\SyliusSEOPlugin\Repository\SeoMetadataRepository;
 use Akawaka\SyliusSEOPlugin\Resolver\SubjectTypeResolver;
 use Doctrine\ORM\EntityManagerInterface;
+use Sylius\Resource\Factory\Factory;
 use PHPUnit\Framework\TestCase;
 use Sylius\Component\Core\Model\ProductInterface;
 
@@ -22,13 +23,16 @@ final class SeoMetadataPersisterTest extends TestCase
         return $product;
     }
 
-    private function persister(?SeoMetadata $existing, EntityManagerInterface $entityManager): SeoMetadataPersister
+    private function persister(?SeoMetadata $existing, EntityManagerInterface $entityManager, ?SeoMetadataRepository $repository = null): SeoMetadataPersister
     {
-        $repository = $this->createStub(SeoMetadataRepository::class);
-        $repository->method('findOneForSubject')->willReturn($existing);
+        if (null === $repository) {
+            $repository = $this->createStub(SeoMetadataRepository::class);
+            $repository->method('findOneForSubject')->willReturn($existing);
+        }
 
         return new SeoMetadataPersister(
             $repository,
+            new Factory(SeoMetadata::class),
             new SubjectTypeResolver(['product' => ['class' => ProductInterface::class, 'title_template' => 'T', 'description_template' => null]]),
             $entityManager,
         );
@@ -56,7 +60,10 @@ final class SeoMetadataPersisterTest extends TestCase
 
     public function testALocaleBackToDefaultsRemovesItsRow(): void
     {
-        $existing = new SeoMetadata('product', 7, 'en_US');
+        $existing = new SeoMetadata();
+        $existing->setSubjectType('product');
+        $existing->setSubjectId(7);
+        $existing->setLocale('en_US');
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::once())->method('remove')->with($existing);
         $entityManager->expects(self::never())->method('persist');
@@ -92,13 +99,11 @@ final class SeoMetadataPersisterTest extends TestCase
 
     public function testRemovalIsRememberedBeforeTheIdIsCleared(): void
     {
-        $query = $this->createMock(\Doctrine\ORM\Query::class);
-        $query->expects(self::once())->method('setParameters')->with(['type' => 'product', 'id' => 7])->willReturnSelf();
-        $query->expects(self::once())->method('execute');
+        $repository = $this->createMock(SeoMetadataRepository::class);
+        $repository->expects(self::once())->method('deleteForSubject')->with('product', 7);
         $entityManager = $this->createStub(EntityManagerInterface::class);
-        $entityManager->method('createQuery')->willReturn($query);
 
-        $persister = $this->persister(null, $entityManager);
+        $persister = $this->persister(null, $entityManager, $repository);
         $product = $this->product(7);
         $persister->scheduleRemoval($product);
         $persister->removeScheduled($product);

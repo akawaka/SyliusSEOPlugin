@@ -4,18 +4,10 @@ declare(strict_types=1);
 
 namespace Akawaka\SyliusSEOPlugin\Repository;
 
-use Akawaka\SyliusSEOPlugin\Entity\ImageAlt;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
+use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
 
-/** @extends ServiceEntityRepository<ImageAlt> */
-class ImageAltRepository extends ServiceEntityRepository
+class ImageAltRepository extends EntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
-        parent::__construct($registry, ImageAlt::class);
-    }
-
     /**
      * @param list<string> $paths
      *

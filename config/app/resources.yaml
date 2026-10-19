@@ -11,3 +11,24 @@ sylius_resource:
                 factory: Sylius\Resource\Factory\Factory
                 repository: Akawaka\SyliusSEOPlugin\Repository\RedirectRepository
                 form: Akawaka\SyliusSEOPlugin\Form\Type\RedirectType
+        akawaka_seo.seo_metadata:
+            driver: doctrine/orm
+            classes:
+                model: Akawaka\SyliusSEOPlugin\Entity\SeoMetadata
+                interface: Akawaka\SyliusSEOPlugin\Entity\SeoMetadataInterface
+                factory: Sylius\Resource\Factory\Factory
+                repository: Akawaka\SyliusSEOPlugin\Repository\SeoMetadataRepository
+        akawaka_seo.image_alt:
+            driver: doctrine/orm
+            classes:
+                model: Akawaka\SyliusSEOPlugin\Entity\ImageAlt
+                interface: Akawaka\SyliusSEOPlugin\Entity\ImageAltInterface
+                factory: Sylius\Resource\Factory\Factory
+                repository: Akawaka\SyliusSEOPlugin\Repository\ImageAltRepository
+        akawaka_seo.robots_txt:
+            driver: doctrine/orm
+            classes:
+                model: Akawaka\SyliusSEOPlugin\Entity\RobotsTxt
+                interface: Akawaka\SyliusSEOPlugin\Entity\RobotsTxtInterface
+                factory: Sylius\Resource\Factory\Factory
+                repository: Akawaka\SyliusSEOPlugin\Repository\RobotsTxtRepository

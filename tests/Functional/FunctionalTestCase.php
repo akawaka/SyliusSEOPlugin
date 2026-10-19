@@ -50,7 +50,10 @@ abstract class FunctionalTestCase extends WebTestCase
 
     protected function createSeoMetadata(ProductInterface $product, string $locale = 'en_US'): SeoMetadata
     {
-        $metadata = new SeoMetadata('product', (int) $product->getId(), $locale);
+        $metadata = new SeoMetadata();
+        $metadata->setSubjectType('product');
+        $metadata->setSubjectId((int) $product->getId());
+        $metadata->setLocale($locale);
         $this->entityManager()->persist($metadata);
 
         return $metadata;

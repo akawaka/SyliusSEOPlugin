@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Akawaka\SyliusSEOPlugin\Controller;
 
-use Akawaka\SyliusSEOPlugin\Entity\ImageAlt;
+use Akawaka\SyliusSEOPlugin\Entity\ImageAltInterface;
 use Akawaka\SyliusSEOPlugin\Repository\ImageAltRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Sylius\Resource\Factory\FactoryInterface;
 use Sylius\Component\Channel\Repository\ChannelRepositoryInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\ProductImageInterface;
@@ -28,10 +29,14 @@ final class ImageAltController
 
     private const TYPES = ['product' => ProductImageInterface::class, 'taxon' => TaxonImageInterface::class];
 
-    /** @param ChannelRepositoryInterface<\Sylius\Component\Channel\Model\ChannelInterface> $channelRepository */
+    /**
+     * @param FactoryInterface<ImageAltInterface> $factory
+     * @param ChannelRepositoryInterface<\Sylius\Component\Channel\Model\ChannelInterface> $channelRepository
+     */
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly ImageAltRepository $repository,
+        private readonly FactoryInterface $factory,
         private readonly ChannelRepositoryInterface $channelRepository,
         private readonly CsrfTokenManagerInterface $csrf,
         private readonly Environment $twig,
@@ -58,7 +63,7 @@ final class ImageAltController
 
         $builder = $this->entityManager->createQueryBuilder()
             ->select('i')->from(self::TYPES[$type], 'i')
-            ->leftJoin(ImageAlt::class, 'a', 'WITH', 'a.imagePath = i.path AND a.locale = :locale')
+            ->leftJoin($this->repository->getClassName(), 'a', 'WITH', 'a.imagePath = i.path AND a.locale = :locale')
             ->where('i.path IS NOT NULL')
             ->setParameter('locale', $locale);
         if ($missingOnly) {
@@ -101,7 +106,9 @@ final class ImageAltController
         $paths = array_values(array_filter(array_map(static fn ($image): ?string => $image->getPath(), $images)));
         $existing = [];
         foreach ($this->repository->findBy(['imagePath' => $paths, 'locale' => $locale]) as $row) {
-            $existing[$row->getImagePath()] = $row;
+            if ($row instanceof ImageAltInterface) {
+                $existing[$row->getImagePath()] = $row;
+            }
         }
 
         foreach ($images as $image) {
@@ -116,7 +123,11 @@ final class ImageAltController
             if ('' === $alt) {
                 null !== $row && $this->entityManager->remove($row);
             } elseif (null === $row) {
-                $this->entityManager->persist(new ImageAlt($path, $locale, $alt));
+                $row = $this->factory->createNew();
+                $row->setImagePath($path);
+                $row->setLocale($locale);
+                $row->setAlt($alt);
+                $this->entityManager->persist($row);
             } else {
                 $row->setAlt($alt);
             }

@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Akawaka\SyliusSEOPlugin\Persister;
 
-use Akawaka\SyliusSEOPlugin\Entity\SeoMetadata;
+use Akawaka\SyliusSEOPlugin\Entity\SeoMetadataInterface;
 use Akawaka\SyliusSEOPlugin\Repository\SeoMetadataRepository;
 use Akawaka\SyliusSEOPlugin\Resolver\SubjectTypeResolver;
 use Doctrine\ORM\EntityManagerInterface;
+use Sylius\Resource\Factory\FactoryInterface;
 
 /**
  * The admin form only collects the data; the rows are written once the subject itself is saved
@@ -23,8 +24,10 @@ final class SeoMetadataPersister
     /** @var array<int, array{0: string, 1: int}> */
     private array $removals = [];
 
+    /** @param FactoryInterface<SeoMetadataInterface> $factory */
     public function __construct(
         private readonly SeoMetadataRepository $repository,
+        private readonly FactoryInterface $factory,
         private readonly SubjectTypeResolver $subjectTypes,
         private readonly EntityManagerInterface $entityManager,
     ) {
@@ -84,7 +87,12 @@ final class SeoMetadataPersister
                 continue;
             }
 
-            $metadata ??= new SeoMetadata($type, $id, (string) $locale);
+            if (null === $metadata) {
+                $metadata = $this->factory->createNew();
+                $metadata->setSubjectType($type);
+                $metadata->setSubjectId($id);
+                $metadata->setLocale((string) $locale);
+            }
             $metadata->setMetaTitle($this->text($values['metaTitle'] ?? null));
             $metadata->setMetaDescription($this->text($values['metaDescription'] ?? null));
             $metadata->setCanonicalUrl($this->text($values['canonicalUrl'] ?? null));
@@ -135,8 +143,6 @@ final class SeoMetadataPersister
             return;
         }
 
-        $this->entityManager->createQuery(sprintf('DELETE FROM %s m WHERE m.subjectType = :type AND m.subjectId = :id', SeoMetadata::class))
-            ->setParameters(['type' => $removal[0], 'id' => $removal[1]])
-            ->execute();
+        $this->repository->deleteForSubject($removal[0], $removal[1]);
     }
 }

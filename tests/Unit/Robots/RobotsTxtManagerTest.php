@@ -8,6 +8,7 @@ use Akawaka\SyliusSEOPlugin\Entity\RobotsTxt;
 use Akawaka\SyliusSEOPlugin\Repository\RobotsTxtRepository;
 use Akawaka\SyliusSEOPlugin\Robots\RobotsTxtManager;
 use Doctrine\ORM\EntityManagerInterface;
+use Sylius\Resource\Factory\Factory;
 use PHPUnit\Framework\TestCase;
 use Sylius\Component\Core\Model\ChannelInterface;
 
@@ -18,7 +19,7 @@ final class RobotsTxtManagerTest extends TestCase
         $repository = $this->createStub(RobotsTxtRepository::class);
         $repository->method('findOneForChannel')->willReturn($stored);
 
-        return new RobotsTxtManager($repository, $entityManager ?? $this->createStub(EntityManagerInterface::class));
+        return new RobotsTxtManager($repository, new Factory(RobotsTxt::class), $entityManager ?? $this->createStub(EntityManagerInterface::class));
     }
 
     private function channel(): ChannelInterface
@@ -39,7 +40,9 @@ final class RobotsTxtManagerTest extends TestCase
 
     public function testStoredContentIsServedAndAnExistingSitemapLineIsKept(): void
     {
-        $stored = new RobotsTxt('WEB', "User-agent: *\nDisallow: /x\nsitemap: https://other.test/map.xml\n");
+        $stored = new RobotsTxt();
+        $stored->setChannelCode('WEB');
+        $stored->setContent("User-agent: *\nDisallow: /x\nsitemap: https://other.test/map.xml\n");
         $content = $this->manager($stored)->render('WEB', 'https://shop.test/sitemap.xml');
 
         self::assertStringContainsString('Disallow: /x', $content);
@@ -57,7 +60,9 @@ final class RobotsTxtManagerTest extends TestCase
         $manager->stash($channel, 'Disallow: /a');
         $manager->persist($channel);
 
-        $existing = new RobotsTxt('WEB', 'old');
+        $existing = new RobotsTxt();
+        $existing->setChannelCode('WEB');
+        $existing->setContent('old');
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::never())->method('persist');
         $manager = $this->manager($existing, $entityManager);

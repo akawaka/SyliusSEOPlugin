@@ -10,7 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 /** Custom robots.txt content of one channel; no row means the default content is served. */
 #[ORM\Entity(repositoryClass: RobotsTxtRepository::class)]
 #[ORM\Table(name: 'akawaka_seo_robots_txt')]
-class RobotsTxt
+class RobotsTxt implements RobotsTxtInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -23,12 +23,6 @@ class RobotsTxt
     #[ORM\Column(type: 'text')]
     private string $content;
 
-    public function __construct(string $channelCode, string $content)
-    {
-        $this->channelCode = $channelCode;
-        $this->content = $content;
-    }
-
     public function getId(): ?int
     {
         return $this->id;
@@ -37,6 +31,11 @@ class RobotsTxt
     public function getChannelCode(): string
     {
         return $this->channelCode;
+    }
+
+    public function setChannelCode(string $channelCode): void
+    {
+        $this->channelCode = $channelCode;
     }
 
     public function getContent(): string

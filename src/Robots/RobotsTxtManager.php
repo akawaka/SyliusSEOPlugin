@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Akawaka\SyliusSEOPlugin\Robots;
 
-use Akawaka\SyliusSEOPlugin\Entity\RobotsTxt;
+use Akawaka\SyliusSEOPlugin\Entity\RobotsTxtInterface;
 use Akawaka\SyliusSEOPlugin\Repository\RobotsTxtRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
+use Sylius\Resource\Factory\FactoryInterface;
 
 /** Reads and writes the robots.txt of a channel. */
 final class RobotsTxtManager
@@ -15,8 +16,10 @@ final class RobotsTxtManager
     /** @var array<int, string> channel object id => submitted content */
     private array $pending = [];
 
+    /** @param FactoryInterface<RobotsTxtInterface> $factory */
     public function __construct(
         private readonly RobotsTxtRepository $repository,
+        private readonly FactoryInterface $factory,
         private readonly EntityManagerInterface $entityManager,
     ) {
     }
@@ -66,7 +69,10 @@ final class RobotsTxtManager
         if ('' === trim($content)) {
             null !== $robots && $this->entityManager->remove($robots);
         } elseif (null === $robots) {
-            $this->entityManager->persist(new RobotsTxt($code, $content));
+            $robots = $this->factory->createNew();
+            $robots->setChannelCode($code);
+            $robots->setContent($content);
+            $this->entityManager->persist($robots);
         } else {
             $robots->setContent($content);
         }

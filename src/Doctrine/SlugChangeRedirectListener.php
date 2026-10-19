@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Akawaka\SyliusSEOPlugin\Doctrine;
 
-use Akawaka\SyliusSEOPlugin\Entity\Redirect;
 use Akawaka\SyliusSEOPlugin\Entity\RedirectInterface;
 use Akawaka\SyliusSEOPlugin\Integration\Cms\CmsPages;
+use Akawaka\SyliusSEOPlugin\Repository\RedirectRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\OnFlushEventArgs;
+use Sylius\Resource\Factory\FactoryInterface;
 use Sylius\Component\Product\Model\ProductTranslationInterface;
 use Sylius\Component\Taxonomy\Model\TaxonTranslationInterface;
 use Symfony\Component\Routing\Exception\ExceptionInterface;
@@ -24,8 +25,12 @@ final class SlugChangeRedirectListener
         CmsPages::PAGE_TRANSLATION_INTERFACE => CmsPages::SHOW_ROUTE,
     ];
 
-    public function __construct(private readonly RouterInterface $router)
-    {
+    /** @param FactoryInterface<RedirectInterface> $redirectFactory */
+    public function __construct(
+        private readonly RouterInterface $router,
+        private readonly RedirectRepository $redirects,
+        private readonly FactoryInterface $redirectFactory,
+    ) {
     }
 
     public function onFlush(OnFlushEventArgs $args): void
@@ -60,8 +65,8 @@ final class SlugChangeRedirectListener
     private function register(EntityManagerInterface $entityManager, string $oldPath, string $newPath): void
     {
         $unitOfWork = $entityManager->getUnitOfWork();
-        $metadata = $entityManager->getClassMetadata(Redirect::class);
-        $repository = $entityManager->getRepository(Redirect::class);
+        $metadata = $entityManager->getClassMetadata($this->redirects->getClassName());
+        $repository = $this->redirects;
 
         // The new URL is live again: a redirection away from it would loop.
         foreach ($repository->findBy(['sourcePath' => $newPath]) as $obsolete) {
@@ -88,7 +93,7 @@ final class SlugChangeRedirectListener
             return;
         }
 
-        $redirect = new Redirect();
+        $redirect = $this->redirectFactory->createNew();
         $redirect->setSourcePath($oldPath);
         $redirect->setTargetUrl($newPath);
         $redirect->setAutomatic(true);

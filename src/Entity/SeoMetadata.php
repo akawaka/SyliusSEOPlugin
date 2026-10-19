@@ -14,7 +14,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: SeoMetadataRepository::class)]
 #[ORM\Table(name: 'akawaka_seo_metadata')]
 #[ORM\UniqueConstraint(name: 'akawaka_seo_subject_locale', columns: ['subject_type', 'subject_id', 'locale'])]
-class SeoMetadata
+class SeoMetadata implements SeoMetadataInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -54,13 +54,6 @@ class SeoMetadata
     #[ORM\Column(name: 'og_image', type: 'string', length: 2048, nullable: true)]
     private ?string $ogImage = null;
 
-    public function __construct(string $subjectType, int $subjectId, string $locale)
-    {
-        $this->subjectType = $subjectType;
-        $this->subjectId = $subjectId;
-        $this->locale = $locale;
-    }
-
     public function getId(): ?int
     {
         return $this->id;
@@ -71,14 +64,29 @@ class SeoMetadata
         return $this->subjectType;
     }
 
+    public function setSubjectType(string $subjectType): void
+    {
+        $this->subjectType = $subjectType;
+    }
+
     public function getSubjectId(): int
     {
         return $this->subjectId;
     }
 
+    public function setSubjectId(int $subjectId): void
+    {
+        $this->subjectId = $subjectId;
+    }
+
     public function getLocale(): string
     {
         return $this->locale;
+    }
+
+    public function setLocale(string $locale): void
+    {
+        $this->locale = $locale;
     }
 
     public function getMetaTitle(): ?string

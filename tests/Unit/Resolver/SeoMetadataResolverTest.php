@@ -81,7 +81,10 @@ final class SeoMetadataResolverTest extends TestCase
 
     public function testStoredValuesOverrideTheTemplatesAndBlankOnesFallBack(): void
     {
-        $stored = new SeoMetadata('product', 7, 'en_US');
+        $stored = new SeoMetadata();
+        $stored->setSubjectType('product');
+        $stored->setSubjectId(7);
+        $stored->setLocale('en_US');
         $stored->setMetaTitle('  Custom title ');
         $stored->setMetaDescription('   ');
         $stored->setCanonicalUrl('https://example.com/canonical');

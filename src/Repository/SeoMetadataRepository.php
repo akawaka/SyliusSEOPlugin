@@ -4,27 +4,34 @@ declare(strict_types=1);
 
 namespace Akawaka\SyliusSEOPlugin\Repository;
 
-use Akawaka\SyliusSEOPlugin\Entity\SeoMetadata;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
+use Akawaka\SyliusSEOPlugin\Entity\SeoMetadataInterface;
+use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
 
-/** @extends ServiceEntityRepository<SeoMetadata> */
-class SeoMetadataRepository extends ServiceEntityRepository
+class SeoMetadataRepository extends EntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
+    public function findOneForSubject(string $type, int $id, string $locale): ?SeoMetadataInterface
     {
-        parent::__construct($registry, SeoMetadata::class);
+        $metadata = $this->findOneBy(['subjectType' => $type, 'subjectId' => $id, 'locale' => $locale]);
+
+        return $metadata instanceof SeoMetadataInterface ? $metadata : null;
     }
 
-    public function findOneForSubject(string $type, int $id, string $locale): ?SeoMetadata
-    {
-        return $this->findOneBy(['subjectType' => $type, 'subjectId' => $id, 'locale' => $locale]);
-    }
-
-    /** @return list<SeoMetadata> */
+    /** @return list<SeoMetadataInterface> */
     public function findAllForSubject(string $type, int $id): array
     {
-        return array_values($this->findBy(['subjectType' => $type, 'subjectId' => $id]));
+        return array_values(array_filter(
+            $this->findBy(['subjectType' => $type, 'subjectId' => $id]),
+            static fn (object $metadata): bool => $metadata instanceof SeoMetadataInterface,
+        ));
+    }
+
+    public function deleteForSubject(string $type, int $id): void
+    {
+        $this->createQueryBuilder('m')
+            ->delete()
+            ->where('m.subjectType = :type')->andWhere('m.subjectId = :id')
+            ->setParameter('type', $type)->setParameter('id', $id)
+            ->getQuery()->execute();
     }
 
     /**

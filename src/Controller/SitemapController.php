@@ -30,6 +30,8 @@ final class SitemapController
         $response = new Response($content, Response::HTTP_OK, ['Content-Type' => 'application/xml; charset=UTF-8']);
         $response->setPublic();
         $response->setMaxAge(3600);
+        // One URL path, one document per channel host: shared caches must key on the host.
+        $response->setVary(['Host'], false);
 
         return $response;
     }

@@ -4,20 +4,15 @@ declare(strict_types=1);
 
 namespace Akawaka\SyliusSEOPlugin\Repository;
 
-use Akawaka\SyliusSEOPlugin\Entity\RobotsTxt;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
+use Akawaka\SyliusSEOPlugin\Entity\RobotsTxtInterface;
+use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
 
-/** @extends ServiceEntityRepository<RobotsTxt> */
-class RobotsTxtRepository extends ServiceEntityRepository
+class RobotsTxtRepository extends EntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
+    public function findOneForChannel(string $channelCode): ?RobotsTxtInterface
     {
-        parent::__construct($registry, RobotsTxt::class);
-    }
+        $robots = $this->findOneBy(['channelCode' => $channelCode]);
 
-    public function findOneForChannel(string $channelCode): ?RobotsTxt
-    {
-        return $this->findOneBy(['channelCode' => $channelCode]);
+        return $robots instanceof RobotsTxtInterface ? $robots : null;
     }
 }
