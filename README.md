@@ -37,6 +37,27 @@ With strong expertise in PHP and Symfony, Akawaka builds web solutions tailored 
 
 ## Installation
 
+Add the [Akawaka Flex recipes](https://github.com/akawaka/symfony-recipes) endpoint to your project, then require the plugin:
+
+```bash
+composer config --json extra.symfony.endpoint '["https://api.github.com/repos/akawaka/symfony-recipes/contents/index.json?ref=flex/main","flex://defaults"]'
+composer require akawaka/sylius-seo-plugin
+```
+
+Symfony Flex registers the bundle and creates `config/packages/akawaka_seo.yaml` and `config/routes/akawaka_seo.yaml` (see [Manual installation](#manual-installation-without-flex) for their content).
+
+If `public/robots.txt` or `public/sitemap.xml` exist, the web server serves them instead of the plugin: remove them.
+
+Then update the database:
+
+```bash
+bin/console doctrine:migrations:migrate
+```
+
+### Manual installation (without Flex)
+
+Replace the first step above with:
+
 ```bash
 composer require akawaka/sylius-seo-plugin
 ```
@@ -64,14 +85,6 @@ akawaka_seo_admin:
 
 akawaka_seo_shop:
     resource: '@AkawakaSyliusSEOPlugin/config/routes/shop.yaml'
-```
-
-If `public/robots.txt` or `public/sitemap.xml` exist, the web server serves them instead of the plugin: remove them.
-
-Then update the database:
-
-```bash
-bin/console doctrine:migrations:migrate
 ```
 
 ## Configuration
