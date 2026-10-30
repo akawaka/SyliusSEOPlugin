@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="doc/logo-akawaka.png" style="width: 500px;">
+    <img src="docs/logo-akawaka.png" width="500" alt="AKAWAKA">
 </p>
 
 <p align="center">
@@ -130,29 +130,15 @@ templates/bundles/AkawakaSyliusSEOPlugin/shop/head.html.twig
 ## Development
 
 ```bash
-composer install
-(cd vendor/sylius/test-application && yarn install && yarn build)
-vendor/bin/console doctrine:database:create && vendor/bin/console doctrine:migrations:migrate -n
-vendor/bin/console sylius:fixtures:load -n
-symfony server:start        # the test application, admin at /admin
-
-vendor/bin/phpunit --testsuite Unit   # PHP unit tests
-# CmsIntegrationTest runs only when akawaka/sylius-cms-plugin is installed (skipped otherwise)
-APP_ENV=test vendor/bin/phpunit --testsuite Functional   # needs the test database (see below)
-vendor/bin/ecs check        # coding standard
-vendor/bin/phpstan analyse -c phpstan.neon   # level max
+make init            # start the containers (PHP, MySQL, nginx, mailhog) and install dependencies
+make database-init   # create the test application database, run migrations and load the Sylius fixtures
+make frontend        # build the assets of the test application (only to browse it)
+make test            # ECS, PHPStan (level max), PHPUnit
 ```
 
-With Docker: `cp compose.override.dist.yml compose.override.yml && docker compose up -d`, then run the commands above inside the `php` container (`docker compose exec php sh`).
-
-The functional tests boot the test application and use the `test` database (`DATABASE_URL` in `tests/TestApplication/.env.test`, override it in your environment). Create it once with `APP_ENV=test vendor/bin/console doctrine:database:create && APP_ENV=test vendor/bin/console doctrine:migrations:migrate -n && APP_ENV=test vendor/bin/console sylius:fixtures:load -n`.
+Project run at [http://plugin.localhost](http://plugin.localhost)
 
 Project conventions are listed in [`AGENTS.md`](AGENTS.md).
-
-## Roadmap
-
-1. Audit: catalog pagination, scheduled run and export.
-2. Alt texts: edit them directly in the product media tab and reuse them in the sitemap image entries.
 
 ## License
 

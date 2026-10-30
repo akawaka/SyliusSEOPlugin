@@ -2,8 +2,16 @@ name: CI
 
 on:
     push:
-        branches: [main]
+        branches-ignore:
+            - 'dependabot/**'
+        paths-ignore:
+            - "*.md"
     pull_request:
+        paths-ignore:
+            - "*.md"
+    release:
+        types: [created]
+    workflow_dispatch: ~
 
 jobs:
     quality:
@@ -27,7 +35,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                php: ['8.2', '8.3', '8.4']
+                php: ['8.3', '8.4', '8.5']
         services:
             mysql:
                 image: mysql:8.0
@@ -37,7 +45,7 @@ jobs:
                 options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=5
         env:
             APP_ENV: test
-            DATABASE_URL: mysql://root@127.0.0.1/akawaka_sylius_seo_test
+            DATABASE_URL: mysql://root@127.0.0.1/akawaka_sylius_cms_test
         steps:
             -   uses: actions/checkout@v4
             -   uses: shivammathur/setup-php@v2
@@ -45,6 +53,15 @@ jobs:
                     php-version: ${{ matrix.php }}
                     coverage: none
             -   run: composer install --no-interaction --prefer-dist
+            -   uses: actions/setup-node@v4
+                with:
+                    node-version: '24'
+            -   name: Build the assets of the test application
+                working-directory: vendor/sylius/test-application
+                run: |
+                    yarn install
+                    yarn build
+            -   run: vendor/bin/console assets:install vendor/sylius/test-application/public
             -   run: vendor/bin/console doctrine:database:create
             -   run: vendor/bin/console doctrine:migrations:migrate -n
             -   run: vendor/bin/console sylius:fixtures:load -n
