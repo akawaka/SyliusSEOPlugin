@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Akawaka\SyliusSEOPlugin\Persister;
 
 use Akawaka\SyliusSEOPlugin\Entity\SeoMetadataInterface;
+use Akawaka\SyliusSEOPlugin\Enum\AuditField;
 use Akawaka\SyliusSEOPlugin\Repository\SeoMetadataRepository;
 use Akawaka\SyliusSEOPlugin\Resolver\SubjectTypeResolver;
 use Doctrine\ORM\EntityManagerInterface;
@@ -105,6 +106,48 @@ final class SeoMetadataPersister
         }
 
         $this->entityManager->flush();
+    }
+
+    /** Fixes one stored value from the audit page; the row is dropped when it is back to the defaults. */
+    public function updateField(string $type, int $id, string $locale, AuditField $field, string|bool|null $value): void
+    {
+        $metadata = $this->repository->findOneForSubject($type, $id, $locale);
+        $exists = null !== $metadata;
+
+        if (null === $metadata) {
+            $metadata = $this->factory->createNew();
+            $metadata->setSubjectType($type);
+            $metadata->setSubjectId($id);
+            $metadata->setLocale($locale);
+        }
+
+        match ($field) {
+            AuditField::MetaTitle => $metadata->setMetaTitle($this->text($value)),
+            AuditField::MetaDescription => $metadata->setMetaDescription($this->text($value)),
+            AuditField::RobotsIndex => $metadata->setRobotsIndex((bool) $value),
+        };
+
+        if ($this->isDefaultMetadata($metadata)) {
+            $exists && $this->entityManager->remove($metadata);
+        } else {
+            $this->entityManager->persist($metadata);
+        }
+
+        $this->entityManager->flush();
+    }
+
+    private function isDefaultMetadata(SeoMetadataInterface $metadata): bool
+    {
+        return $this->isDefault([
+            'metaTitle' => $metadata->getMetaTitle(),
+            'metaDescription' => $metadata->getMetaDescription(),
+            'canonicalUrl' => $metadata->getCanonicalUrl(),
+            'ogTitle' => $metadata->getOgTitle(),
+            'ogDescription' => $metadata->getOgDescription(),
+            'ogImage' => $metadata->getOgImage(),
+            'robotsIndex' => $metadata->isRobotsIndex(),
+            'robotsFollow' => $metadata->isRobotsFollow(),
+        ]);
     }
 
     /** @param array<string, mixed> $values */

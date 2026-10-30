@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace Tests\Akawaka\SyliusSEOPlugin\Unit\Persister;
 
 use Akawaka\SyliusSEOPlugin\Entity\SeoMetadata;
+use Akawaka\SyliusSEOPlugin\Enum\AuditField;
 use Akawaka\SyliusSEOPlugin\Persister\SeoMetadataPersister;
 use Akawaka\SyliusSEOPlugin\Repository\SeoMetadataRepository;
 use Akawaka\SyliusSEOPlugin\Resolver\SubjectTypeResolver;
 use Doctrine\ORM\EntityManagerInterface;
-use Sylius\Resource\Factory\Factory;
 use PHPUnit\Framework\TestCase;
 use Sylius\Component\Core\Model\ProductInterface;
+use Sylius\Resource\Factory\Factory;
 
 final class SeoMetadataPersisterTest extends TestCase
 {
@@ -108,5 +109,47 @@ final class SeoMetadataPersisterTest extends TestCase
         $persister->scheduleRemoval($product);
         $persister->removeScheduled($product);
         $persister->removeScheduled($product);
+    }
+
+    public function testUpdatingAFieldCreatesTheRowAndTrimsTheValue(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects(self::once())->method('persist')->with(self::callback(
+            static fn (SeoMetadata $m): bool => 'taxon' === $m->getSubjectType() && 3 === $m->getSubjectId() && 'fr_FR' === $m->getLocale() && 'Un titre' === $m->getMetaTitle(),
+        ));
+        $entityManager->expects(self::once())->method('flush');
+
+        $this->persister(null, $entityManager)->updateField('taxon', 3, 'fr_FR', AuditField::MetaTitle, '  Un titre ');
+    }
+
+    public function testUpdatingAFieldBackToTheDefaultRemovesTheRow(): void
+    {
+        $existing = new SeoMetadata();
+        $existing->setMetaTitle('Title');
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects(self::once())->method('remove')->with($existing);
+        $entityManager->expects(self::never())->method('persist');
+
+        $this->persister($existing, $entityManager)->updateField('product', 7, 'en_US', AuditField::MetaTitle, '  ');
+    }
+
+    public function testAllowingIndexationOfAnOtherwiseDefaultRowRemovesIt(): void
+    {
+        $existing = new SeoMetadata();
+        $existing->setRobotsIndex(false);
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects(self::once())->method('remove')->with($existing);
+
+        $this->persister($existing, $entityManager)->updateField('product', 7, 'en_US', AuditField::RobotsIndex, true);
+        self::assertTrue($existing->isRobotsIndex());
+    }
+
+    public function testNothingIsWrittenWhenANewRowWouldStayAtTheDefaults(): void
+    {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $entityManager->expects(self::never())->method('persist');
+        $entityManager->expects(self::never())->method('remove');
+
+        $this->persister(null, $entityManager)->updateField('product', 7, 'en_US', AuditField::MetaDescription, '');
     }
 }

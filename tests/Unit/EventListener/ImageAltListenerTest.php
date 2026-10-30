@@ -57,7 +57,7 @@ final class ImageAltListenerTest extends TestCase
         $alts = ['ab/cd/photo.webp' => 'X'];
 
         self::assertSame(self::HTML, $this->apply($alts, route: 'sylius_admin_product_index'));
-        self::assertSame(self::HTML, $this->apply($alts, route: 'akawaka_seo_admin_image_alt'));
+        self::assertSame(self::HTML, $this->apply($alts, route: 'akawaka_seo_admin_audit'));
         self::assertSame(self::HTML, $this->apply($alts, type: 'application/json'));
         self::assertSame(self::HTML, $this->apply($alts, kernelRequestType: HttpKernelInterface::SUB_REQUEST));
     }

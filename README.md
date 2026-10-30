@@ -24,8 +24,7 @@ With strong expertise in PHP and Symfony, Akawaka builds web solutions tailored 
 - **XML sitemap** (`/sitemap.xml`): paginated product and taxon sections with `hreflang` alternates and images; `noindex` pages are left out.
 - **`robots.txt`** per channel (`/robots.txt`), editable in the channel form, with a default content and an automatic `Sitemap:` line.
 - **Redirections** 301/302 managed in **SEO → Redirections**, applied when a URL answers 404, with hit counters. A 301 is created automatically when the slug of a product or taxon changes (existing chains are collapsed).
-- **Image alt texts** (**SEO → Image alt texts**): list the product or taxon images of a locale, filter those without alt text and edit them in bulk. They are applied to the storefront `<img>` tags whatever the theme, by matching the image file, so no Sylius template is overridden.
-- **SEO audit** (**SEO → SEO audit**): missing, too short or too long titles and descriptions, duplicated titles, `noindex` pages, products without image or with images lacking alt text, per channel and locale.
+- **SEO audit** (**SEO → SEO audit**): missing, too short or too long titles and descriptions, duplicated titles, `noindex` pages, products without image, per channel and locale. Product and taxon images lacking an alt text are listed one by one with an input: the alt text is saved as soon as the field is left. Titles, descriptions and `noindex` issues of products and taxons are editable in place too (a character counter shows the recommended length), and the **Save** button of the header writes every edited field. Alt texts are applied to the storefront `<img>` tags whatever the theme, by matching the image file, so no Sylius template is overridden.
 - **Akawaka CMS plugin integration** (optional, see [CMS pages](#cms-pages)).
 - Rendered automatically in the `<head>` of the Sylius shop through a twig hook. Translations: English and French.
 

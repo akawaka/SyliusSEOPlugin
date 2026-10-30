@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Akawaka\SyliusSEOPlugin\Audit;
 
+use Akawaka\SyliusSEOPlugin\Enum\AuditField;
 use Akawaka\SyliusSEOPlugin\Enum\AuditRule;
 use Akawaka\SyliusSEOPlugin\Integration\Cms\CmsPages;
 use Akawaka\SyliusSEOPlugin\Repository\ImageAltRepository;
@@ -11,6 +12,8 @@ use Akawaka\SyliusSEOPlugin\Repository\SeoMetadataRepository;
 use Akawaka\SyliusSEOPlugin\Resolver\SeoMetadataResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
+use Sylius\Component\Core\Model\ImageInterface;
+use Sylius\Component\Core\Model\ImagesAwareInterface;
 use Sylius\Component\Core\Model\ProductInterface;
 use Sylius\Component\Core\Model\TaxonInterface;
 use Sylius\Resource\Model\ResourceInterface;
@@ -41,6 +44,8 @@ final class SeoAuditor
     {
         $issues = [];
         $titles = [];
+        $fields = [];
+        $titleValues = [];
 
         foreach ($this->subjects($channel, $limit) as [$type, $subject]) {
             if ($subject instanceof TranslatableInterface) {
@@ -55,35 +60,32 @@ final class SeoAuditor
             $id = (int) $subject->getId();
             $label = $this->label($subject);
             $stored = $this->repository->findOneForSubject($type, $id, $locale);
-            $add = static function (AuditRule $rule) use (&$issues, $type, $id, $label): void {
-                $issues[] = new AuditIssue($type, $id, $label, $rule);
+            $description = $stored?->getMetaDescription() ?? $metadata->description;
+            $add = function (AuditRule $rule) use (&$issues, &$fields, $type, $id, $label, $metadata, $description): void {
+                $issues[] = $this->fieldIssue($fields, $type, $id, $label, $rule, $metadata->title, $description);
             };
 
             // The resolved description is truncated, so the length of an override is read from the stored value.
             $titleLength = mb_strlen($metadata->title);
-            $this->checkTexts($add, $titleLength, mb_strlen($stored?->getMetaDescription() ?? $metadata->description));
+            $this->checkTexts($add, $titleLength, mb_strlen($description));
 
             if (str_starts_with($metadata->robots, 'noindex')) {
                 $add(AuditRule::NoIndex);
             }
 
-            if ($subject instanceof ProductInterface) {
-                if ($subject->getImages()->isEmpty()) {
-                    $add(AuditRule::ProductWithoutImage);
-                } else {
-                    $paths = [];
-                    foreach ($subject->getImages() as $image) {
-                        null !== $image->getPath() && $paths[] = $image->getPath();
-                    }
+            if ($subject instanceof ProductInterface && $subject->getImages()->isEmpty()) {
+                $add(AuditRule::ProductWithoutImage);
+            }
 
-                    if (count($this->imageAlts->findAlts($paths, $locale)) < count(array_unique($paths))) {
-                        $add(AuditRule::ImageWithoutAlt);
-                    }
+            if ($subject instanceof ImagesAwareInterface) {
+                foreach ($this->imagesWithoutAlt($subject, $locale) as $position => $image) {
+                    $issues[] = new AuditIssue($type, $id, $label, AuditRule::ImageWithoutAlt, (int) $image->getId(), $image->getPath(), $image->getType(), $position);
                 }
             }
 
             if ($titleLength > 0) {
                 $titles[mb_strtolower($metadata->title)][] = [$type, $id, $label];
+                $titleValues[$type . ':' . $id] = $metadata->title;
             }
         }
 
@@ -94,12 +96,40 @@ final class SeoAuditor
         foreach ($titles as $group) {
             if (count($group) > 1) {
                 foreach ($group as [$type, $id, $label]) {
-                    $issues[] = new AuditIssue($type, $id, $label, AuditRule::TitleDuplicate);
+                    $issues[] = $this->fieldIssue($fields, $type, $id, $label, AuditRule::TitleDuplicate, $titleValues[$type . ':' . $id] ?? '', '');
                 }
             }
         }
 
         return $issues;
+    }
+
+    /**
+     * A subject gets one editable field per stored value: a second rule on the same field (a short and duplicated
+     * title) is only reported. CMS pages own their SEO fields, so they never get one.
+     *
+     * @param array<string, true> $fields
+     */
+    private function fieldIssue(array &$fields, string $type, int $id, string $label, AuditRule $rule, string $title, string $description): AuditIssue
+    {
+        $field = $rule->field();
+        if (null !== $field) {
+            $key = $type . ':' . $id . ':' . $field->value;
+            if ('page' === $type || isset($fields[$key])) {
+                $field = null;
+            } else {
+                $fields[$key] = true;
+            }
+        }
+
+        $value = match ($field) {
+            AuditField::MetaTitle => $title,
+            AuditField::MetaDescription => $description,
+            AuditField::RobotsIndex => '',
+            null => null,
+        };
+
+        return new AuditIssue($type, $id, $label, $rule, field: $field, value: $value);
     }
 
     /**
@@ -131,6 +161,24 @@ final class SeoAuditor
         }
 
         return $issues;
+    }
+
+    /** @return array<int, ImageInterface> images without alt text for the locale (one per path), keyed by their 1-based rank among the images of the subject */
+    private function imagesWithoutAlt(ImagesAwareInterface $subject, string $locale): array
+    {
+        $byPath = [];
+        $rank = 0;
+        foreach ($subject->getImages() as $image) {
+            ++$rank;
+            null !== $image->getPath() && $byPath[$image->getPath()] ??= [$rank, $image];
+        }
+
+        $missing = [];
+        foreach (array_diff_key($byPath, $this->imageAlts->findAlts(array_keys($byPath), $locale)) as [$position, $image]) {
+            $missing[$position] = $image;
+        }
+
+        return $missing;
     }
 
     /** @param callable(AuditRule): void $add */

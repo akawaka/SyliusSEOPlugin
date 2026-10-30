@@ -20,7 +20,8 @@ use Akawaka\SyliusSEOPlugin\Sitemap\SitemapGenerator;
 use Akawaka\SyliusSEOPlugin\Twig\SeoExtension;
 use Akawaka\SyliusSEOPlugin\Audit\SeoAuditor;
 use Akawaka\SyliusSEOPlugin\Controller\AuditController;
-use Akawaka\SyliusSEOPlugin\Controller\ImageAltController;
+use Akawaka\SyliusSEOPlugin\Controller\ImageAltSaveController;
+use Akawaka\SyliusSEOPlugin\Controller\SeoMetadataSaveController;
 use Akawaka\SyliusSEOPlugin\Controller\RobotsTxtController;
 use Akawaka\SyliusSEOPlugin\EventListener\ImageAltListener;
 use Akawaka\SyliusSEOPlugin\Controller\SitemapController;
@@ -153,16 +154,19 @@ return static function (ContainerConfigurator $container): void {
         service(SeoAuditor::class),
         service('sylius.repository.channel'),
         service('twig'),
+        service('security.csrf.token_manager'),
     ])->public();
 
     $services->set(ImageAltListener::class)->args([service('akawaka_seo.repository.image_alt')])
         ->tag('kernel.event_listener', ['event' => 'kernel.response', 'priority' => -110]);
-    $services->set(ImageAltController::class)->args([
+    $services->set(SeoMetadataSaveController::class)->args([
+        service(SeoMetadataPersister::class),
+        service('security.csrf.token_manager'),
+    ])->public();
+    $services->set(ImageAltSaveController::class)->args([
         service('doctrine.orm.entity_manager'),
         service('akawaka_seo.repository.image_alt'),
         service('akawaka_seo.factory.image_alt'),
-        service('sylius.repository.channel'),
         service('security.csrf.token_manager'),
-        service('twig'),
     ])->public();
 };

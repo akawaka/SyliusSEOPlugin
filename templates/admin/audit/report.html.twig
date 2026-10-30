@@ -1,7 +1,9 @@
+{% import '@SyliusAdmin/shared/helper/pagination.html.twig' as pagination %}
+
 {% set context = hookable_metadata.context %}
 {% set severities = ['error', 'warning', 'info'] %}
 
-<div class="page-body">
+<div class="page-body" data-audit-image-alt-root data-token="{{ context.image_alt_token }}" data-locale="{{ context.locale }}">
     <div class="container-xl">
         <form method="get" class="row g-2 mb-3">
             <div class="col-auto">
@@ -35,6 +37,13 @@
             {% if context.issues is empty %}
                 <div class="card-body text-success">{{ 'akawaka_seo.audit.no_issue'|trans }}</div>
             {% else %}
+                <div class="card-body border-bottom py-3">
+                    <div class="d-flex">
+                        <div class="ms-auto">
+                            {{ pagination.number_of_results_selector(context.paginator, context.limits) }}
+                        </div>
+                    </div>
+                </div>
                 <div class="table-responsive">
                     <table class="table table-vcenter card-table">
                         <thead>
@@ -52,13 +61,142 @@
                                         <a href="{{ path(issue.subjectType == 'page' ? 'akawaka_cms_admin_page_update' : 'sylius_admin_' ~ issue.subjectType ~ '_update', {id: issue.subjectId}) }}">{{ issue.subjectLabel }}</a>
                                         <span class="text-muted">({{ ('akawaka_seo.audit.type.' ~ issue.subjectType)|trans }})</span>
                                     </td>
-                                    <td>{{ issue.rule.label|trans }}</td>
+                                    <td>
+                                        {{ issue.rule.label|trans }}
+                                        {% if issue.imageId is not null %}
+                                            <div class="d-flex align-items-center gap-2 mt-2">
+                                                <img src="{{ issue.imagePath|imagine_filter('sylius_small') }}" alt="" width="48" height="48" class="rounded flex-shrink-0" style="object-fit: cover">
+                                                {% set suggestion = issue.imageType == 'main' or issue.imagePosition == 1
+                                                    ? issue.subjectLabel
+                                                    : 'akawaka_seo.audit.image_view'|trans({'%name%': issue.subjectLabel, '%position%': issue.imagePosition}) %}
+                                                <div class="input-group">
+                                                    <input type="text" maxlength="255" class="form-control"
+                                                           data-audit-input data-initial="" data-value-key="alt"
+                                                           data-save-url="{{ path('akawaka_seo_admin_audit_image_alt') }}"
+                                                           data-params="{{ {type: issue.subjectType, id: issue.imageId}|json_encode }}"
+                                                           placeholder="{{ 'akawaka_seo.image_alt.alt'|trans }}">
+                                                    <button type="button" class="btn btn-outline-secondary" data-audit-image-alt-fill data-name="{{ suggestion }}"
+                                                            title="{{ 'akawaka_seo.audit.use_name'|trans }}" aria-label="{{ 'akawaka_seo.audit.use_name'|trans }}">
+                                                        {{ ux_icon('tabler:wand', {class: 'icon m-0'}) }}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        {% elseif issue.field is not null %}
+                                            {% set field = issue.field %}
+                                            {% set params = {type: issue.subjectType, id: issue.subjectId, field: field.value}|json_encode %}
+                                            <div class="mt-2">
+                                                {% if field.value == 'robotsIndex' %}
+                                                    <label class="form-check form-switch mb-0">
+                                                        <input type="checkbox" class="form-check-input" data-audit-input data-initial="" data-value-key="value"
+                                                               data-save-url="{{ path('akawaka_seo_admin_audit_metadata') }}" data-params="{{ params }}">
+                                                        <span class="form-check-label">{{ field.label|trans }}</span>
+                                                    </label>
+                                                {% else %}
+                                                    {% set isTitle = field.value == 'metaTitle' %}
+                                                    {% set min = isTitle ? constant('Akawaka\\SyliusSEOPlugin\\Enum\\AuditRule::TITLE_MIN') : constant('Akawaka\\SyliusSEOPlugin\\Enum\\AuditRule::DESCRIPTION_MIN') %}
+                                                    {% set max = isTitle ? constant('Akawaka\\SyliusSEOPlugin\\Enum\\AuditRule::TITLE_MAX') : constant('Akawaka\\SyliusSEOPlugin\\Enum\\AuditRule::DESCRIPTION_MAX') %}
+                                                    {% set attributes %}data-audit-input data-initial="{{ issue.value }}" data-value-key="value" data-min="{{ min }}" data-max="{{ max }}" data-save-url="{{ path('akawaka_seo_admin_audit_metadata') }}" data-params="{{ params }}" aria-label="{{ field.label|trans }}" placeholder="{{ field.label|trans }}"{% endset %}
+                                                    {% if isTitle %}
+                                                        <input type="text" maxlength="255" class="form-control" value="{{ issue.value }}" {{ attributes }}>
+                                                    {% else %}
+                                                        <textarea rows="2" class="form-control" {{ attributes }}>{{ issue.value }}</textarea>
+                                                    {% endif %}
+                                                    <div class="form-text" data-audit-counter></div>
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+                                    </td>
                                 </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
+                <div class="card-footer d-flex align-items-center gap-2 flex-wrap">
+                    <div class="text-muted">{{ pagination.results_count(context.paginator) }}</div>
+                    <div class="ms-auto">
+                        {{ pagination.simple(context.paginator) }}
+                    </div>
+                </div>
             {% endif %}
         </div>
     </div>
 </div>
+
+<script>
+(function () {
+    var root = document.querySelector('[data-audit-image-alt-root]');
+    var button = document.querySelector('[data-audit-image-alt-save]');
+    if (!root || !button) { return; }
+
+    var inputs = Array.prototype.slice.call(root.querySelectorAll('[data-audit-input]'));
+    var valueOf = function (input) {
+        return 'checkbox' === input.type ? (input.checked ? '1' : '') : input.value.trim();
+    };
+    var dirty = function () {
+        return inputs.filter(function (input) { return valueOf(input) !== input.dataset.initial; });
+    };
+    var refresh = function () { button.disabled = dirty().length === 0; };
+
+    var count = function (input) {
+        var counter = input.parentNode.querySelector('[data-audit-counter]');
+        if (!counter || !input.dataset.max) { return; }
+
+        var length = input.value.trim().length;
+        var ok = length >= parseInt(input.dataset.min, 10) && length <= parseInt(input.dataset.max, 10);
+        counter.textContent = length + ' (' + input.dataset.min + '-' + input.dataset.max + ')';
+        counter.classList.toggle('text-success', ok);
+        counter.classList.toggle('text-warning', !ok);
+    };
+
+    var save = function (input) {
+        var body = new FormData();
+        var params = JSON.parse(input.dataset.params);
+        Object.keys(params).forEach(function (key) { body.append(key, params[key]); });
+        body.append('_token', root.dataset.token);
+        body.append('locale', root.dataset.locale);
+        body.append(input.dataset.valueKey, valueOf(input));
+
+        input.disabled = true;
+
+        return fetch(input.dataset.saveUrl, {method: 'POST', body: body, headers: {'X-Requested-With': 'XMLHttpRequest'}})
+            .then(function (response) { if (!response.ok) { throw new Error(response.status); } return response.json(); })
+            .then(function (data) {
+                input.dataset.initial = data.value;
+                'checkbox' === input.type ? (input.checked = '' !== data.value) : (input.value = data.value);
+                input.classList.remove('border-danger');
+                input.classList.add('border-success');
+                count(input);
+            })
+            .catch(function () { input.classList.remove('border-success'); input.classList.add('border-danger'); })
+            .finally(function () { input.disabled = false; });
+    };
+
+    var saveAll = function () {
+        button.disabled = true;
+        Promise.all(dirty().map(save)).then(refresh);
+    };
+
+    root.querySelectorAll('[data-audit-image-alt-fill]').forEach(function (fill) {
+        fill.addEventListener('click', function () {
+            var input = fill.parentNode.querySelector('[data-audit-input]');
+            input.value = fill.dataset.name;
+            input.dispatchEvent(new Event('input'));
+            input.focus();
+        });
+    });
+
+    inputs.forEach(function (input) {
+        count(input);
+        input.addEventListener('input', function () {
+            input.classList.remove('border-success', 'border-danger');
+            count(input);
+            refresh();
+        });
+        input.addEventListener('change', refresh);
+        input.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter' && 'INPUT' === input.tagName && 'text' === input.type) { event.preventDefault(); saveAll(); }
+        });
+    });
+    button.addEventListener('click', saveAll);
+})();
+</script>

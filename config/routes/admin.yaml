@@ -21,8 +21,14 @@ akawaka_seo_admin_audit:
     defaults:
         _controller: Akawaka\SyliusSEOPlugin\Controller\AuditController
 
-akawaka_seo_admin_image_alt:
-    path: /admin/seo/image-alts
-    methods: [GET, POST]
+akawaka_seo_admin_audit_metadata:
+    path: /admin/seo/audit/metadata
+    methods: [POST]
     defaults:
-        _controller: Akawaka\SyliusSEOPlugin\Controller\ImageAltController
+        _controller: Akawaka\SyliusSEOPlugin\Controller\SeoMetadataSaveController
+
+akawaka_seo_admin_audit_image_alt:
+    path: /admin/seo/audit/image-alt
+    methods: [POST]
+    defaults:
+        _controller: Akawaka\SyliusSEOPlugin\Controller\ImageAltSaveController

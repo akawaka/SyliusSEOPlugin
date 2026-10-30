@@ -6,20 +6,27 @@ namespace Akawaka\SyliusSEOPlugin\Controller;
 
 use Akawaka\SyliusSEOPlugin\Audit\SeoAuditor;
 use Akawaka\SyliusSEOPlugin\Enum\AuditSeverity;
+use Pagerfanta\Adapter\ArrayAdapter;
+use Pagerfanta\Pagerfanta;
 use Sylius\Component\Channel\Repository\ChannelRepositoryInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Twig\Environment;
 
 final class AuditController
 {
+    /** Same page sizes as the admin grids. */
+    private const LIMITS = [10, 25, 50];
+
     /** @param ChannelRepositoryInterface<\Sylius\Component\Channel\Model\ChannelInterface> $channelRepository */
     public function __construct(
         private readonly SeoAuditor $auditor,
         private readonly ChannelRepositoryInterface $channelRepository,
         private readonly Environment $twig,
+        private readonly CsrfTokenManagerInterface $csrf,
     ) {
     }
 
@@ -49,13 +56,21 @@ final class AuditController
             $counts[$severity->value] = count(array_filter($issues, static fn ($issue): bool => $issue->rule->severity() === $severity));
         }
 
+        $limit = $request->query->getInt('limit', self::LIMITS[0]);
+        $paginator = new Pagerfanta(new ArrayAdapter($issues));
+        $paginator->setMaxPerPage(in_array($limit, self::LIMITS, true) ? $limit : self::LIMITS[0]);
+        $paginator->setCurrentPage(min(max(1, $request->query->getInt('page', 1)), $paginator->getNbPages()));
+
         return new Response($this->twig->render('@AkawakaSyliusSEOPlugin/admin/audit/index.html.twig', [
             'channels' => $channels,
             'channel' => $channel,
             'locales' => $locales,
             'locale' => $locale,
-            'issues' => $issues,
+            'issues' => iterator_to_array($paginator->getCurrentPageResults(), false),
+            'paginator' => $paginator,
+            'limits' => self::LIMITS,
             'counts' => $counts,
+            'image_alt_token' => $this->csrf->getToken(ImageAltSaveController::CSRF_ID)->getValue(),
         ]));
     }
 }

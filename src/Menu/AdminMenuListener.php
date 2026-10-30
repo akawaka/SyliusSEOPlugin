@@ -23,12 +23,6 @@ final class AdminMenuListener
         ;
 
         $seo
-            ->addChild('image_alts', ['route' => 'akawaka_seo_admin_image_alt'])
-            ->setLabel('akawaka_seo.menu.image_alts')
-            ->setLabelAttribute('icon', 'tabler:photo')
-        ;
-
-        $seo
             ->addChild('redirects', ['route' => 'akawaka_seo_admin_redirect_index', 'extras' => ['routes' => [
                 ['route' => 'akawaka_seo_admin_redirect_create'],
                 ['route' => 'akawaka_seo_admin_redirect_update'],

@@ -45,6 +45,17 @@ enum AuditRule: string
         };
     }
 
+    /** The stored override that fixes the issue, null when it cannot be fixed by editing a field. */
+    public function field(): ?AuditField
+    {
+        return match ($this) {
+            self::TitleMissing, self::TitleTooShort, self::TitleTooLong, self::TitleDuplicate => AuditField::MetaTitle,
+            self::DescriptionMissing, self::DescriptionTooShort, self::DescriptionTooLong => AuditField::MetaDescription,
+            self::NoIndex => AuditField::RobotsIndex,
+            self::ProductWithoutImage, self::ImageWithoutAlt => null,
+        };
+    }
+
     public function severity(): AuditSeverity
     {
         return match ($this) {

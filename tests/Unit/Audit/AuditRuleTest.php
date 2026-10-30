@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Akawaka\SyliusSEOPlugin\Unit\Audit;
 
+use Akawaka\SyliusSEOPlugin\Enum\AuditField;
 use Akawaka\SyliusSEOPlugin\Enum\AuditRule;
 use Akawaka\SyliusSEOPlugin\Enum\AuditSeverity;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -52,5 +53,15 @@ final class AuditRuleTest extends TestCase
         foreach (AuditRule::cases() as $rule) {
             self::assertSame('akawaka_seo.audit.rule.' . $rule->value, $rule->label());
         }
+    }
+
+    public function testEachRuleMapsToTheFieldThatFixesIt(): void
+    {
+        self::assertSame(AuditField::MetaTitle, AuditRule::TitleTooShort->field());
+        self::assertSame(AuditField::MetaTitle, AuditRule::TitleDuplicate->field());
+        self::assertSame(AuditField::MetaDescription, AuditRule::DescriptionMissing->field());
+        self::assertSame(AuditField::RobotsIndex, AuditRule::NoIndex->field());
+        self::assertNull(AuditRule::ProductWithoutImage->field());
+        self::assertNull(AuditRule::ImageWithoutAlt->field());
     }
 }

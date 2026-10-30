@@ -21,7 +21,6 @@ akawaka_seo:
     menu:
         seo: SEO
         redirects: Redirections
-        image_alts: Textes alternatifs des images
         audit: Audit SEO
     redirect:
         created_at: Créée le
@@ -39,6 +38,12 @@ akawaka_seo:
             temporary: 302 - Trouvée (temporaire)
     audit:
         no_issue: Aucun problème SEO détecté.
+        use_name: Utiliser le nom
+        field:
+            metaTitle: Meta title
+            metaDescription: Meta description
+            robotsIndex: Autoriser l'indexation
+        image_view: "%name% – vue %position%"
         subject: Page
         issue: Problème
         type:
@@ -63,6 +68,3 @@ akawaka_seo:
             image_without_alt: Une image n'a pas de texte alternatif
     image_alt:
         alt: Texte alternatif
-        missing_only: Sans texte alternatif uniquement
-        none: Aucune image à afficher.
-        total: '{0} Aucune image|{1} 1 image|]1,Inf[ %count% images'

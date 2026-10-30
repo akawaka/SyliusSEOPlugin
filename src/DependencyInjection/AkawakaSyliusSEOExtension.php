@@ -70,12 +70,6 @@ final class AkawakaSyliusSEOExtension extends Extension implements PrependExtens
             ];
         }
 
-        $hooks['akawaka_seo.image_alt.index.content'] = [
-            'header' => ['template' => '@AkawakaSyliusSEOPlugin/admin/page_header.html.twig', 'priority' => 200],
-            'grid' => ['enabled' => false],
-            'report' => ['template' => '@AkawakaSyliusSEOPlugin/admin/image_alt/report.html.twig', 'priority' => 100],
-        ];
-
         $hooks['akawaka_seo.audit.index.content'] = [
             'header' => ['template' => '@AkawakaSyliusSEOPlugin/admin/page_header.html.twig', 'priority' => 200],
             'grid' => ['enabled' => false],
