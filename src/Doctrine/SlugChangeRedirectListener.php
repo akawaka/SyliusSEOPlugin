@@ -9,9 +9,9 @@ use Akawaka\SyliusSEOPlugin\Integration\Cms\CmsPages;
 use Akawaka\SyliusSEOPlugin\Repository\RedirectRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Event\OnFlushEventArgs;
-use Sylius\Resource\Factory\FactoryInterface;
 use Sylius\Component\Product\Model\ProductTranslationInterface;
 use Sylius\Component\Taxonomy\Model\TaxonTranslationInterface;
+use Sylius\Resource\Factory\FactoryInterface;
 use Symfony\Component\Routing\Exception\ExceptionInterface;
 use Symfony\Component\Routing\RouterInterface;
 

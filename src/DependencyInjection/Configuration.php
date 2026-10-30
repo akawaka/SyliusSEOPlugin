@@ -37,8 +37,10 @@ final class Configuration implements ConfigurationInterface
             }
         }
 
-        /** @var array<string, array{class: string, title_template: string, description_template: ?string}> $merged */
-        return $merged;
+        /** @var array<string, array{class: string, title_template: string, description_template: ?string}> $subjectsWithDefaults */
+        $subjectsWithDefaults = $merged;
+
+        return $subjectsWithDefaults;
     }
 
     public function getConfigTreeBuilder(): TreeBuilder

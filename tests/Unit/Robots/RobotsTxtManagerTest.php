@@ -8,9 +8,9 @@ use Akawaka\SyliusSEOPlugin\Entity\RobotsTxt;
 use Akawaka\SyliusSEOPlugin\Repository\RobotsTxtRepository;
 use Akawaka\SyliusSEOPlugin\Robots\RobotsTxtManager;
 use Doctrine\ORM\EntityManagerInterface;
-use Sylius\Resource\Factory\Factory;
 use PHPUnit\Framework\TestCase;
 use Sylius\Component\Core\Model\ChannelInterface;
+use Sylius\Resource\Factory\Factory;
 
 final class RobotsTxtManagerTest extends TestCase
 {
