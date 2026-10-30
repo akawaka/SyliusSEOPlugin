@@ -8,6 +8,11 @@ use Akawaka\SyliusSEOPlugin\Entity\ImageAlt;
 
 final class ImageAltTest extends FunctionalTestCase
 {
+    private function altInput(int|string|null $imageId): string
+    {
+        return sprintf('[data-audit-input][data-value-key="alt"][data-params=\'{"type":"product","id":%s}\']', $imageId);
+    }
+
     public function testAltTextsAreEditedFromTheAuditAndShownOnTheStorefront(): void
     {
         $product = $this->firstProduct();
@@ -17,12 +22,12 @@ final class ImageAltTest extends FunctionalTestCase
         $this->logInAsAdministrator();
         $crawler = $this->client->request('GET', '/admin/seo/audit?locale=en_US&limit=50');
         self::assertResponseIsSuccessful();
-        $input = $crawler->filter('[data-audit-image-alt][data-type="product"][data-id="' . $image->getId() . '"]');
+        $input = $crawler->filter($this->altInput($image->getId()));
         self::assertCount(1, $input);
 
         self::assertCount(
-            $crawler->filter('[data-audit-image-alt]')->count(),
-            $crawler->filter('.input-group > [data-audit-image-alt] + [data-audit-image-alt-fill]'),
+            $crawler->filter('[data-audit-input][data-value-key="alt"]')->count(),
+            $crawler->filter('.input-group > [data-audit-input][data-value-key="alt"] + [data-audit-image-alt-fill]'),
         );
         $fill = $input->nextAll()->filter('[data-audit-image-alt-fill]');
         self::assertCount(1, $fill);
@@ -47,7 +52,7 @@ final class ImageAltTest extends FunctionalTestCase
         self::assertContains('Photo "de face" du produit', $alts);
 
         $crawler = $this->client->request('GET', '/admin/seo/audit?locale=en_US&limit=50');
-        self::assertCount(0, $crawler->filter('[data-audit-image-alt][data-type="product"][data-id="' . $image->getId() . '"]'));
+        self::assertCount(0, $crawler->filter($this->altInput($image->getId())));
     }
 
     public function testAuditReportsImagesWithoutAlt(): void
